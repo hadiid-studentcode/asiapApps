@@ -10,6 +10,8 @@ class Circulation extends Model
     /** @use HasFactory<\Database\Factories\CirculationFactory> */
     use HasFactory;
 
+    protected $table = 'circulations';
+
     protected $guarded = ['id'];
 
     public function book()

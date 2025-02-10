@@ -9,8 +9,7 @@ use App\Models\Member; // Tambahkan ini di bagian atas file
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use DB;
-
+use Illuminate\Support\Facades\DB;
 
 class CirculationController extends Controller
 {
@@ -68,7 +67,7 @@ class CirculationController extends Controller
                 'tgl_pinjam',
                 'tgl_kembali',
                 'status',
-                \DB::raw('COUNT(*) as qty')
+                DB::raw('COUNT(*) as qty')
             )
             ->where('status', 'pinjam')
             ->groupBy('kode_pinjam', 'member_id', 'book_id', 'tgl_pinjam', 'tgl_kembali', 'status');

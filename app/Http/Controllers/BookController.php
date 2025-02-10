@@ -6,7 +6,7 @@ use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 
 class BookController extends Controller
@@ -32,9 +32,9 @@ class BookController extends Controller
                 'thn_terbit',
                 'status',
                 'cover',
-                \DB::raw('COUNT(id) as qty'), // Menghitung jumlah buku berdasarkan judul
-                \DB::raw('MAX(created_at) as latest_created_at'), // Mengambil tanggal terbaru dalam grup
-                \DB::raw('GROUP_CONCAT(code SEPARATOR ", ") as codes') // Menggabungkan kode buku dalam satu grup
+                DB::raw('COUNT(id) as qty'), // Menghitung jumlah buku berdasarkan judul
+                DB::raw('MAX(created_at) as latest_created_at'), // Mengambil tanggal terbaru dalam grup
+                DB::raw('GROUP_CONCAT(code SEPARATOR ", ") as codes') // Menggabungkan kode buku dalam satu grup
             )
             ->groupBy('judul', 'isbn', 'pengarang', 'penerbit', 'thn_terbit', 'status', 'cover')
             ->orderByDesc('latest_created_at'); // Urutkan berdasarkan buku terbaru
