@@ -1,0 +1,29 @@
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Book>
+ */
+class BookFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'code' => 'B-'.$this->faker->unique()->numberBetween(1000, 9999),
+            'isbn' => $this->faker->isbn13,
+            'judul' => $this->faker->sentence(3),
+            'pengarang' => $this->faker->name,
+            'penerbit' => $this->faker->company,
+            'thn_terbit' => $this->faker->year,
+            'status' =>'tersedia'
+        ];
+    }
+}
