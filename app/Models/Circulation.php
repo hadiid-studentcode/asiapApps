@@ -14,10 +14,12 @@ class Circulation extends Model
 
     protected $guarded = ['id'];
 
+    // Di model Circulation
     public function book()
     {
-        return $this->belongsTo(Book::class);
+        return $this->belongsTo(Book::class, 'book_id'); // pastikan 'book_id' adalah nama kolom yang benar
     }
+
 
     public function member()
     {

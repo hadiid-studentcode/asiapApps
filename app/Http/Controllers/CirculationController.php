@@ -26,20 +26,21 @@ class CirculationController extends Controller
         $search = $request->search;
 
         $query = Book::select(
-                'isbn',
-                'judul',
-                'pengarang',
-                'penerbit',
-                'thn_terbit',
-                'cover',
-                'deskripsi',
-                DB::raw('MIN(id) as id'),
-                DB::raw('MAX(created_at) as latest_created_at'), // Add this line
-                DB::raw('COUNT(*) as total_qty'),
-                DB::raw('SUM(CASE WHEN status = "tersedia" THEN 1 ELSE 0 END) as available_qty')
-            )
-            ->groupBy('isbn', 'judul', 'pengarang', 'penerbit', 'thn_terbit', 'cover', 'deskripsi')
-            ->orderBy('latest_created_at', 'desc'); // Change this line
+            'code',
+            'isbn',
+            'judul',
+            'pengarang',
+            'penerbit',
+            'thn_terbit',
+            'cover',
+            'deskripsi',
+            DB::raw('MIN(id) as id'),
+            DB::raw('MAX(created_at) as latest_created_at'),
+            DB::raw('COUNT(*) as total_qty'),
+            DB::raw('SUM(CASE WHEN status = "tersedia" THEN 1 ELSE 0 END) as available_qty')
+        )
+            ->groupBy('code', 'isbn', 'judul', 'pengarang', 'penerbit', 'thn_terbit', 'cover', 'deskripsi')
+            ->orderBy('latest_created_at', 'desc');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -59,19 +60,21 @@ class CirculationController extends Controller
     {
         $search = $request->search;
 
+        // Query for circulation data
         $query = Circulation::with('book', 'member', 'user')
             ->select(
+                'id',
                 'kode_pinjam',
-                'member_id',
                 'book_id',
+                'member_id',
                 'tgl_pinjam',
                 'tgl_kembali',
                 'status',
-                DB::raw('COUNT(*) as qty')
-            )
-            ->where('status', 'pinjam')
-            ->groupBy('kode_pinjam', 'member_id', 'book_id', 'tgl_pinjam', 'tgl_kembali', 'status');
 
+            )
+            ->where('status', 'pinjam');
+
+        // Apply search filters if search is provided
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('tgl_pinjam', 'like', '%' . $search . '%')
@@ -95,8 +98,31 @@ class CirculationController extends Controller
             return $item;
         });
 
+        //     // Initialize books array
+        //     $books = [];
+
+        //     // Check if there is at least one circulation to fetch book data
+        //     if ($circulations->count() > 0) {
+        //         // Get the first circulation's 'kode_pinjam' to fetch related book title
+        //         $judulBuku = Circulation::with('book')->where('kode_pinjam', $circulations->first()->kode_pinjam)->first();
+
+        //         if ($judulBuku) {
+        //             // Add book title to the first item in the paginated result
+        //             $books[] = [
+        //                 'id_buku' => $judulBuku->book->id,
+        //                 'judul' => $judulBuku->book->judul,
+        //                 'circulations' => $circulations->toArray()['data'],  // Attach circulation data
+        //             ];
+        //         }
+        //     }
+
+        //     // For debugging (you can remove this in production)
+        //   dd($books[0]['circulations']);
+
+        // Return paginated data as JSON
         return response()->json($circulations);
     }
+
 
 
     public function loadMore(Request $request)
@@ -104,18 +130,18 @@ class CirculationController extends Controller
         $search = $request->search;
 
         $query = Book::select(
-                'isbn',
-                'judul',
-                'pengarang',
-                'penerbit',
-                'thn_terbit',
-                'cover',
-                'deskripsi',
-                DB::raw('MIN(id) as id'),
-                DB::raw('MAX(created_at) as latest_created_at'), // Add this line
-                DB::raw('COUNT(*) as total_qty'),
-                DB::raw('SUM(CASE WHEN status = "tersedia" THEN 1 ELSE 0 END) as available_qty')
-            )
+            'isbn',
+            'judul',
+            'pengarang',
+            'penerbit',
+            'thn_terbit',
+            'cover',
+            'deskripsi',
+            DB::raw('MIN(id) as id'),
+            DB::raw('MAX(created_at) as latest_created_at'), // Add this line
+            DB::raw('COUNT(*) as total_qty'),
+            DB::raw('SUM(CASE WHEN status = "tersedia" THEN 1 ELSE 0 END) as available_qty')
+        )
             ->groupBy('isbn', 'judul', 'pengarang', 'penerbit', 'thn_terbit', 'cover', 'deskripsi')
             ->orderBy('latest_created_at', 'desc'); // Change this line
 
@@ -139,14 +165,12 @@ class CirculationController extends Controller
 
     public function store(Request $request)
     {
-
-
         try {
             $request->validate([
                 'cartData' => ['required', 'string'],
                 'member_id' => ['required', 'exists:members,id'],
                 'tgl_pinjam' => ['required', 'date'],
-                'tgl_kembali' => ['required', 'date'],
+                'tgl_kembali' => ['required', 'date', 'after_or_equal:tgl_pinjam'],
             ]);
 
             // Decode cart data from JSON
@@ -157,29 +181,35 @@ class CirculationController extends Controller
             }
 
             foreach ($cartItems as $item) {
-                // Create circulation record for each book with its quantity
-                for ($i = 0; $i < $item['qty']; $i++) {
+                // Ambil buku yang tersedia sesuai jumlah yang ingin dipinjam
+                $availableBooks = Book::where('code', $item['code'])->where('status', 'tersedia')->limit($item['qty'])->get();
+
+                if ($availableBooks->count() < $item['qty']) {
+                    return back()->with('error', "Stok buku {$item['code']} tidak mencukupi");
+                }
+
+                foreach ($availableBooks as $book) {
                     Circulation::create([
-                        'kode_pinjam' => 'P-' . time() . '-' .  $item['id'],
-                        'book_id' => $item['id'],
+                        'kode_pinjam' => 'P-' . time() . '-' . $book->id,
+                        'book_id' => $book->id,
                         'member_id' => $request->member_id,
                         'tgl_pinjam' => $request->tgl_pinjam,
                         'tgl_kembali' => $request->tgl_kembali,
                         'status' => 'pinjam',
                         'user_id' => Auth::id(),
                     ]);
-                }
 
-                // Update book status
-                $book = Book::findOrFail($item['id']);
-                $book->update(['status' => 'dipinjam']);
+                    // Perbarui status buku menjadi 'dipinjam'
+                    $book->update(['status' => 'dipinjam']);
+                }
             }
 
             return back()->with('success', 'Data peminjaman berhasil ditambahkan');
         } catch (\Throwable $th) {
-            return back()->with('error', $th->getMessage());
+            return back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
     }
+
 
     public function update(Request $request, $id)
     {
@@ -235,33 +265,46 @@ class CirculationController extends Controller
         }
     }
 
-    public function returnBook($kode_pinjam)
+    public function returnBook($id_circulation)
     {
-
         try {
-            Circulation::where('kode_pinjam', $kode_pinjam)->update([
-                'status' => 'kembali',
-            ]);
-            $circulation = Circulation::select('book_id')->where('kode_pinjam', $kode_pinjam)->first();
+            // Ambil data sirkulasi dengan relasi ke buku
+            $circulation = Circulation::with('book')->find($id_circulation);
 
-            $book = Book::findOrFail($circulation->book_id);
+            // Jika data sirkulasi tidak ditemukan
+            if (!$circulation) {
+                return response()->json(['status' => 'error', 'message' => 'Data sirkulasi tidak ditemukan'], 404);
+            }
+
+            // Ambil data buku
+            $book = Book::find($circulation->book_id);
+
+            // Jika buku tidak ditemukan
+            if (!$book) {
+                return response()->json(['status' => 'error', 'message' => 'Data buku tidak ditemukan'], 404);
+            }
+
+            // Update status buku menjadi tersedia
             $book->update(['status' => 'tersedia']);
 
+            // Update status sirkulasi menjadi kembali
+            $circulation->update(['status' => 'kembali']);
 
             return response()->json(['status' => 'success', 'message' => 'Buku berhasil dikembalikan']);
         } catch (\Throwable $th) {
-            return response()->json(['status' => 'error', 'message' => 'Buku gagal dikembalikan']);
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $th->getMessage()], 500);
         }
     }
 
-    public function extend(Request $request, $kode_pinjam)
+
+    public function extend(Request $request, $id_circulation)
     {
         try {
             $request->validate([
                 'jatuhtempo' => ['required', 'date'],
             ]);
 
-            Circulation::where('kode_pinjam', $kode_pinjam)->update([
+            Circulation::where('id', $id_circulation)->update([
                 'tgl_kembali' => $request->jatuhtempo,
             ]);
 

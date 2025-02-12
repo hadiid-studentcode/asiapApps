@@ -23,22 +23,23 @@ class BookController extends Controller
     public function getDataBuku(Request $request)
     {
         $search = $request->search;
-    
+
         $query = Book::select(
-                'judul',
-                'isbn',
-                'pengarang',
-                'penerbit',
-                'thn_terbit',
-                'status',
-                'cover',
-                DB::raw('COUNT(id) as qty'), // Menghitung jumlah buku berdasarkan judul
-                DB::raw('MAX(created_at) as latest_created_at'), // Mengambil tanggal terbaru dalam grup
-                DB::raw('GROUP_CONCAT(code SEPARATOR ", ") as codes') // Menggabungkan kode buku dalam satu grup
-            )
-            ->groupBy('judul', 'isbn', 'pengarang', 'penerbit', 'thn_terbit', 'status', 'cover')
+            'code',
+            'judul',
+            'isbn',
+            'pengarang',
+            'penerbit',
+            'thn_terbit',
+        
+            'cover',
+            'deskripsi',
+            DB::raw('COUNT(id) as qty'), // Menghitung jumlah buku berdasarkan judul
+            DB::raw('MAX(created_at) as latest_created_at'), // Mengambil tanggal terbaru dalam grup
+        )
+            ->groupBy('code', 'judul', 'isbn', 'pengarang', 'penerbit', 'thn_terbit',  'cover', 'deskripsi')
             ->orderByDesc('latest_created_at'); // Urutkan berdasarkan buku terbaru
-    
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', '%' . $search . '%')
@@ -48,13 +49,13 @@ class BookController extends Controller
                     ->orWhere('code', 'like', '%' . $search . '%');
             });
         }
-    
+
         $books = $query->paginate(10);
-    
+
         return response()->json($books);
     }
-    
-    
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -121,26 +122,30 @@ class BookController extends Controller
                     'thn_terbit' => ['required', 'string'],
                     'deskripsi' => ['nullable', 'string'],
                 ]);
+                $kode = 'B-' . rand(1000, 9999);
 
-                $book = new Book;
+                for ($i = 1; $i <= $request->jumlah; $i++) {
 
-                // jika ada cover yang diupload masukkan ke dalam storage
-                if ($request->hasFile('cover')) {
-                    $cover = $request->file('cover');
-                    $cover_path = $cover->store('buku/cover');
-                    $book->cover = $cover_path;
+                    $book = new Book;
+
+                    // jika ada cover yang diupload masukkan ke dalam storage
+                    if ($request->hasFile('cover')) {
+                        $cover = $request->file('cover');
+                        $cover_path = $cover->store('buku/cover');
+                        $book->cover = $cover_path;
+                    }
+
+
+                    $book->isbn = $request->isbn;
+                    $book->code = $kode;
+                    $book->judul = $request->judul;
+                    $book->pengarang = $request->pengarang;
+                    $book->penerbit = $request->penerbit;
+                    $book->thn_terbit = $request->thn_terbit;
+                    $book->status = 'tersedia';
+                    $book->deskripsi = $request->deskripsi;
+                    $book->save();
                 }
-
-
-                $book->isbn = $request->isbn;
-                $book->code = 'B-' . rand(1000, 9999);
-                $book->judul = $request->judul;
-                $book->pengarang = $request->pengarang;
-                $book->penerbit = $request->penerbit;
-                $book->thn_terbit = $request->thn_terbit;
-                $book->status = 'tersedia';
-                $book->deskripsi = $request->deskripsi;
-                $book->save();
 
                 return back()->with('success', 'Data buku berhasil ditambahkan');
             }
@@ -169,32 +174,33 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $codes)
     {
         try {
+            $books = Book::where('code', $codes)->get();
 
-            $book = Book::findOrFail($id);
 
-            // jika ada cover yang diupload hapus gambar lama dan masukkan ke dalam storage
-            if ($request->hasFile('cover')) {
+            foreach ($books as $book) {
+                // jika ada cover yang diupload hapus gambar lama dan masukkan ke dalam storage
+                if ($request->hasFile('cover')) {
+                    // hapus gambar lama
+                    $book->cover && Storage::delete($book->cover);
 
-                // hapus gambar lama
-                $book->cover && Storage::delete($book->cover);
+                    $cover = $request->file('cover');
+                    $cover_path = $cover->store('buku/cover');
+                    $book->cover = $cover_path;
+                }
 
-                $cover = $request->file('cover');
-                $cover_path = $cover->store('buku/cover');
-                $book->cover = $cover_path;
+                $book->judul = $request->judul;
+                $book->isbn = $request->isbn;
+                $book->pengarang = $request->pengarang;
+                $book->penerbit = $request->penerbit;
+                $book->thn_terbit = $request->thn_terbit;
+                $book->deskripsi = $request->deskripsi;
+
+                $book->save();
             }
 
-
-            $book->judul = $request->judul;
-            $book->isbn = $request->isbn;
-            $book->pengarang = $request->pengarang;
-            $book->penerbit = $request->penerbit;
-            $book->thn_terbit = $request->thn_terbit;
-            $book->deskripsi = $request->deskripsi;
-
-            $book->save();
 
             return response()->json([
                 'status' => 'success',
@@ -211,11 +217,12 @@ class BookController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($buku_id)
+    public function destroy($codes)
     {
 
         try {
-            Book::where('id', $buku_id)->delete();
+
+            Book::where('code', $codes)->delete();
 
             return response()->json([
                 'status' => 'success',

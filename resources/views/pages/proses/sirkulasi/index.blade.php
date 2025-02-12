@@ -312,7 +312,6 @@
                             <tr>
                                 <th class="text-center" scope="col">No</th>
                                 <th class="text-center" scope="col">Buku</th>
-                                <th class="text-center" scope="col">Jumlah</th>
                                 <th class="text-center" scope="col">Peminjam</th>
                                 <th class="text-center" scope="col">Tanggal Pinjam</th>
                                 <th class="text-center" scope="col">Jatuh Tempo</th>
@@ -328,7 +327,6 @@
                                         x-text="isNaN(((pagination.current_page - 1) * pagination.per_page) + index + 1) ? '' : ((pagination.current_page - 1) * pagination.per_page) + index + 1">
                                     </td>
                                     <td class="text-center" x-text="circulation.book.judul"></td>
-                                    <td class="text-center" x-text="circulation.qty"></td>
                                     <td class="text-center" x-text="circulation.member.name"></td>
                                     <td class="text-center" x-text="circulation.tgl_pinjam_formatted"></td>
                                     <td class="text-center" x-text="circulation.tgl_kembali_formatted"></td>
@@ -336,9 +334,9 @@
                                     <td class="text-center" x-text="calculateLateDays(circulation.tgl_kembali)"></td>
                                     <td class="text-center">
                                         <button class="btn btn-success btn-sm"
-                                            @click="returnBook(circulation.kode_pinjam)"><i class="bx bx-check"></i></button>
+                                            @click="returnBook(circulation.id)"><i class="bx bx-check"></i></button>
                                         <button class="btn btn-info btn-sm"
-                                            @click="extendBook(circulation.kode_pinjam)">
+                                            @click="extendBook(circulation.id)">
                                             <i class='bx bx-calendar' style='color:#fdf8f8'  ></i>
                                         </button>
                                     </td>

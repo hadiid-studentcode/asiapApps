@@ -31,8 +31,8 @@ Route::middleware('auth')->name('admin.')->group(function () {
         Route::get('/', [BookController::class, 'index'])->name('index');
         Route::get('/show/{buku_id}', [BookController::class, 'show'])->name('show');
         Route::post('/store', [BookController::class, 'store'])->name('store');
-        Route::put('/update/{buku_id}', [BookController::class, 'update'])->name('update');
-        Route::DELETE('/destroy/{buku_id}', [BookController::class, 'destroy'])->name('destroy');
+        Route::put('/update/{codes}', [BookController::class, 'update'])->name('update');
+        Route::DELETE('/destroy/{codes}', [BookController::class, 'destroy'])->name('destroy');
 
         // api
 
@@ -61,9 +61,9 @@ Route::middleware('auth')->name('admin.')->group(function () {
         Route::delete('/destroy/{sirkulasi_id}', [CirculationController::class, 'destroy'])->name('destroy');
         Route::get('/edit/{sirkulasi_id}', [CirculationController::class, 'edit'])->name('edit');
         Route::post('/updateDenda', [CirculationController::class, 'updateDenda'])->name('updateDenda');
-        Route::post('/return/{kode_pinjam}', [CirculationController::class, 'returnBook'])->name('return');
+        Route::post('/return/{id_circulation}', [CirculationController::class, 'returnBook'])->name('return');
         Route::get('/filter', [CirculationController::class, 'filter'])->name('filter');
-        Route::post('/extend/{kode_pinjam}', [CirculationController::class, 'extend'])->name('extend');
+        Route::post('/extend/{id_circulation}', [CirculationController::class, 'extend'])->name('extend');
 
 
          // api

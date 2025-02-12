@@ -187,10 +187,15 @@
                                         <input type="text" class="form-control" id="penerbit" name="penerbit"
                                             placeholder="Masukkan Nama Penerbit" value="{{ old('penerbit') }}">
                                     </div>
-                                    <div class="col-12">
+                                    <div class="col-6">
                                         <label for="tahun" class="form-label">Tahun</label>
                                         <input type="number" class="form-control" id="thn_terbit" name="thn_terbit"
                                             placeholder="Masukkan Tahun Terbit" value="{{ old('thn_terbit') }}">
+                                    </div>
+                                      <div class="col-6">
+                                        <label for="jumlah" class="form-label">Jumlah</label>
+                                        <input type="number" class="form-control" id="jumlah" name="jumlah"
+                                            placeholder="Masukkan Jumlah Buku" value="{{ old('jumlah') }}">
                                     </div>
                                     <div class="col-12">
                                         <label for="deskripsi" class="form-label">Deskripsi</label>
@@ -268,7 +273,7 @@
                                     </td>
 
 
-                                    <td x-text="book.codes"></td>
+                                    <td x-text="book.code"></td>
                                     <td x-text="book.isbn"></td>
                                     <td x-text="book.judul"></td>
                                     <td x-text="book.pengarang"></td>
@@ -280,18 +285,18 @@
                                             <!-- Button trigger modal -->
                                             <button type="button" class="btn btn-success" data-bs-toggle="modal"
                                                 data-bs-target="#detailbuku" style="margin-right: 5px;"
-                                                @click="openModal(book.id)">
+                                                @click="openModal(book.code)">
                                                 <i class='bx bxs-show' style="color: white;"></i>
                                             </button>
 
 
-                                            <button class="btn btn-warning" @click="openModal(book.id)"
+                                            <button class="btn btn-warning" @click="openModal(book.code)"
                                                 style="margin-right: 5px;" data-bs-toggle="modal"
                                                 data-bs-target="#editBukuModal">
                                                 <i class='bx bx-edit' style="color: white;"></i>
                                             </button>
 
-                                            <button type="button" class="btn btn-danger" @click="deleteBook(book.id)">
+                                            <button type="button" class="btn btn-danger" @click="deleteBook(book.code)">
                                                 <i class='bx bx-trash' style="color: white;"></i>
                                             </button>
 
@@ -307,7 +312,7 @@
                                 @click.away="closeModal" x-bind:aria-hidden="!isOpen">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
-                                        <form @submit.prevent="updateBook(selectedBook.id)" enctype="multipart/form-data">
+                                        <form @submit.prevent="updateBook(selectedBook.code)" enctype="multipart/form-data">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="editBukuModalLabel">Edit Buku </h5>
                                                 <button type="button" class="btn-close btn-close-dark"
@@ -391,7 +396,7 @@
                                                 <li class="list-group-item"><strong>ISBN: </strong><span
                                                         x-text="selectedBook?.isbn ?? ''"></span></li>
                                                 <li class="list-group-item"><strong>KODE: </strong><span
-                                                        x-text="selectedBook?.kode ?? ''"></span></li>
+                                                        x-text="selectedBook?.code ?? ''"></span></li>
                                                 <li class="list-group-item"><strong>Tahun Terbit: </strong><span
                                                         x-text="selectedBook?.thn_terbit ?? ''"></span></li>
                                                 <li class="list-group-item"><strong>Deskripsi: </strong><span
@@ -506,8 +511,8 @@
 
                     this.featchData();
                 },
-                openModal(bookId) {
-                    this.selectedBook = this.books.find(book => book.id === bookId);
+                openModal(code) {
+                    this.selectedBook = this.books.find(book => book.code === code);
                     this.isOpen = true;
                 },
 
@@ -610,7 +615,7 @@
                         this.featchData(url);
                     }
                 },
-                deleteBook(id) {
+                deleteBook(code) {
                     try {
                         Swal.fire({
                             title: 'Apakah anda yakin?',
@@ -627,7 +632,7 @@
                                 this.isLoading = true; // Show loading bar
 
                                 axios.delete(
-                                    `{{ route('admin.kelolaBuku.destroy', '') }}/${id}`, {
+                                    `{{ route('admin.kelolaBuku.destroy', '') }}/${code}`, {
                                         headers: {
                                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                                         }
@@ -659,7 +664,7 @@
 
                     }
                 },
-                async updateBook(book_id) {
+                async updateBook(codes) {
                     this.isLoading = true; // Show loading bar
 
                     let formData = new FormData();
@@ -679,7 +684,7 @@
 
                     try {
                         const response = await axios.post(
-                            `{{ route('admin.kelolaBuku.update', '') }}/${book_id}`,
+                            `{{ route('admin.kelolaBuku.update', '') }}/${codes}`,
                             formData, {
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}',

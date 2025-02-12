@@ -96,6 +96,7 @@
                         this.filters
                     );
                     this.books = response.data.data;
+                    console.log(this.books);
                     this.isLoading = false;
                 } catch (error) {
                     console.error(error);
@@ -192,11 +193,12 @@
                 const finePerDay = {{ $denda->jumlah ?? 1000 }};
                 return lateDays > 0 ? lateDays * finePerDay : 0;
             },
-            async returnBook(kode_pinjam) {
+            async returnBook(id_circulation) {
                 this.isLoading = true;
+              
                 try {
                     const response = await axios.post(
-                        '{{ route('admin.sirkulasi.return', '') }}/' + kode_pinjam);
+                        '{{ route('admin.sirkulasi.return', '') }}/' + id_circulation );
                     if (response.data.status === 'success') {
                         this.isLoading = false;
                         // Pass current search query and page when refreshing data
@@ -215,13 +217,13 @@
                     );
                 }
             },
-            async extendBook(kode_pinjam) {
+            async extendBook(id_circulation) {
                 const today = new Date().toISOString().split('T')[0];
                 const nextWeek = new Date();
                 nextWeek.setDate(nextWeek.getDate() + 7);
                 const nextWeekStr = nextWeek.toISOString().split('T')[0];
 
-                const circulation = this.circulations.find(c => c.kode_pinjam === kode_pinjam);
+                const circulation = this.circulations.find(c => c.id === id_circulation);
                 const currentDueDate = circulation ? circulation.tgl_kembali : today;
 
                 // const {
@@ -312,7 +314,7 @@
                 if (date) {
                     try {
                         const response = await axios.post(
-                            '{{ route('admin.sirkulasi.extend', '') }}/' + kode_pinjam, {
+                            '{{ route('admin.sirkulasi.extend', '') }}/' + id_circulation, {
                                 jatuhtempo: date
                             });
                         if (response.data.status === 'success') {
