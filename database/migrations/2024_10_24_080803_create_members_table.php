@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('gender', ['laki-laki', 'perempuan']);
             $table->string('telp')->nullable();
             $table->string('kelas')->nullable();
-            $table->string('cards')->nullable();
+            $table->string('cards')->nullable()->unique();
             $table->timestamps();
         });
     }
