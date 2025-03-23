@@ -52,6 +52,15 @@
                             <div class="modal-body">
                                 <div class="row g-3">
                                     <div class="col-12">
+                                        <label for="kartu_slot" class="form-label">Kartu Slot</label>
+
+                                        <input type="text" class="form-control mt-2" id="cards" name="cards"
+                                            placeholder="Kartu Slot">
+
+
+
+                                    </div>
+                                    <div class="col-12">
                                         <label for="nama" class="form-label">Nama</label>
                                         <input type="text" class="form-control" id="nama" name="nama"
                                             placeholder="Masukkan Nama Lengkap" required>
@@ -74,13 +83,7 @@
                                         <input type="text" class="form-control" id="telp" name="telp"
                                             placeholder="Masukkan Nomor Telepon" required>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="kartu_slot" class="form-label">Kartu Slot</label>
-                                        <button type="button" class="btn btn-primary btn-sm"
-                                            id="reset-kartu">Reset</button>
-                                        <input type="text" class="form-control mt-2" id="cards" name="cards" readonly
-                                             placeholder="Kartu Slot">
-                                    </div>
+
                                 </div>
                             </div>
 
@@ -165,6 +168,13 @@
                                             <div class="modal-body">
                                                 <div class="row g-3">
                                                     <div class="col-12">
+                                                        <label for="kartu_slot" class="form-label">Kartu Slot</label>
+
+                                                        <input type="text" class="form-control mt-2" id="cards"
+                                                            name="cards" placeholder="Kartu Slot"
+                                                            x-model="selectedMember.cards">
+                                                    </div>
+                                                    <div class="col-12">
                                                         <label for="nama" class="form-label">Nama</label>
                                                         <input type="text" class="form-control" id="nama"
                                                             name="nama" placeholder="Masukkan Nama Lengkap"
@@ -205,14 +215,7 @@
 
 
 
-                                                    <div class="col-12">
-                                                        <label for="kartu_slot" class="form-label">Kartu Slot</label>
-                                                        <button type="button" class="btn btn-primary btn-sm"
-                                                           @click="resetKartu">Reset</button>
-                                                        <input type="text" class="form-control mt-2" id="cards"
-                                                            name="cards" placeholder="Kartu Slot"
-                                                            x-model="selectedMember.cards" readonly>
-                                                    </div>
+
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -465,6 +468,18 @@
                     this.selectedMember.cards = '';
                 }
             }));
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listener untuk modal "Tambah Anggota"
+            const tambahAnggotaModal = document.getElementById('tambahAnggota');
+            tambahAnggotaModal.addEventListener('shown.bs.modal', function() {
+                document.getElementById('cards').focus();
+            });
+
+
         });
     </script>
 @endpush
