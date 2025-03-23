@@ -133,7 +133,7 @@
                                                         required>
                                                         <option value="" selected disabled>Pilih Anggota</option>
                                                         @foreach ($members as $member)
-                                                            <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                                            <option value="{{ $member->id }}">{{ $member->name }} - {{ $member->cards }}</option>
                                                         @endforeach
                                                     </select>
                                                     <div class="row g-2 mt-2">
